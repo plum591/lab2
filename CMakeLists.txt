@@ -38,8 +38,6 @@ add_executable(tests tests.cpp)
 target_link_libraries(tests PRIVATE GTest::gtest_main)
 target_include_directories(tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-configure_file(ip_filter.tsv ${CMAKE_CURRENT_BINARY_DIR}/ip_filter.tsv COPYONLY)
-
 set_target_properties(lab2 tests PROPERTIES
     CXX_STANDARD 14
     CXX_STANDARD_REQUIRED ON
@@ -53,7 +51,8 @@ else ()
     target_compile_options(tests PRIVATE -Wall -Wextra -pedantic -Werror)
 endif()
 
-install(TARGETS lab2 RUNTIME DESTINATION .)
+install(TARGETS lab2 RUNTIME DESTINATION .) 
+install(FILES ip_filter.tsv DESTINATION .)
 
 set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
 set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")

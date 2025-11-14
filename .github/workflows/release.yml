@@ -81,10 +81,13 @@ jobs:
           cd build
           .\Release\tests.exe
       
-      - name: Create clean package
+      - name: Create package
         run: |
           cd build
-          7z a -tzip lab2-${{ needs.bump-version.outputs.new_tag }}-windows.zip ../ip_filter.tsv ./Release/lab2.exe
+          mkdir package/build
+          copy Release\lab2.exe package\build\
+          copy ..\ip_filter.tsv package\
+          7z a -tzip lab2-${{ needs.bump-version.outputs.new_tag }}-windows.zip package\*
       
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
