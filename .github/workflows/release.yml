@@ -45,7 +45,7 @@ jobs:
         run: cmake --build .
       
       - name: Run tests
-        run: cmake --build . --target test
+        run: ./tests  # Запускаем Google Test напрямую
       
       - name: Create package
         run: cmake --build . --target package
@@ -69,18 +69,18 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DPROJECT_VERSION_PATCH=${{ needs.bump-version.outputs.commit_count }}
+          cmake .. -DPROJECT_VERSION_PATCH=${{ needs.bump-version.outputs.commit_count }} -Dgtest_force_shared_crt=ON
 
       - name: Build
         run: |
           cd build
           cmake --build . --config Release
 
-      - name: Run tests
+      - name: Run Google Tests
         run: |
           cd build
-          ctest -C Release
-
+          .\Release\tests.exe  # Запускаем Google Test напрямую
+      
       - name: Package
         run: |
           cd build

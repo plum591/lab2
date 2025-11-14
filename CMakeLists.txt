@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-# Версия на основе количества коммитов (только для пакетирования)
+# Версия на основе количества коммитов
 find_package(Git QUIET)
 if(GIT_FOUND)
     execute_process(
@@ -17,44 +17,55 @@ endif()
 set(PROJECT_VERSION 1.0.${GIT_COMMIT_COUNT})
 project(lab2 VERSION ${PROJECT_VERSION})
 
-# Google Test
+# Настройка для Windows
+if(WIN32)
+    if(MSVC)
+        # Используем динамическую runtime библиотеку
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
+    endif()
+endif()
+
+# Google Test с правильными настройками
 include(FetchContent)
 FetchContent_Declare(
     googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
     GIT_TAG release-1.12.1
 )
+
+# Критически важная настройка для Windows
+set(gtest_force_shared_crt ON CACHE BOOL "Use shared (DLL) run-time lib" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 # Основная программа
 add_executable(lab2 main.cpp)
 
-# Тесты
+# Тесты - используем современные цели Google Test
 add_executable(tests tests.cpp)
-target_link_libraries(tests PRIVATE gtest_main)
+target_link_libraries(tests PRIVATE GTest::gtest_main)
 target_include_directories(tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Копирование данных для тестов
 configure_file(ip_filter.tsv ${CMAKE_CURRENT_BINARY_DIR}/ip_filter.tsv COPYONLY)
 
 # Настройки компиляции
-set_target_properties(lab2 tests PROPERTIES
+set_target_properties(lab2  tests PROPERTIES
     CXX_STANDARD 14
     CXX_STANDARD_REQUIRED ON
 )
 
 if (MSVC)
     target_compile_options(lab2 PRIVATE /W4)
-    target_compile_options(tests PRIVATE /W4)
+    target_compile_options(tests PRIVATE /W4 /MD)  # Явно указываем динамическую runtime
 else ()
     target_compile_options(lab2 PRIVATE -Wall -Wextra -pedantic -Werror)
     target_compile_options(tests PRIVATE -Wall -Wextra -pedantic -Werror)
 endif()
 
 # Установка
-install(TARGETS lab2 RUNTIME DESTINATION bin)
+install(TARGETS lab2    RUNTIME DESTINATION bin)
 
-# Пакетирование (версия только здесь)
+# Пакетирование
 set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
 set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
@@ -68,6 +79,6 @@ endif()
 
 include(CPack)
 
-# Тестирование
+# Тестирование - запускаем исполняемый файл tests напрямую
 enable_testing()
 add_test(NAME ip_filter_tests COMMAND tests)
