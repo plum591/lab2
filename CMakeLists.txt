@@ -63,6 +63,7 @@ if(WIN32)
     set(CPACK_GENERATOR ZIP)
 else()
     set(CPACK_GENERATOR DEB)
+    set(CPACK_DEBIAN_PACKAGE_MAINTAINER "lab2")
 endif()
 
 include(CPack)
