@@ -8,7 +8,6 @@
 using Ip = std::tuple<int, int, int, int>;
 using IpPool = std::vector<Ip>;
 
-// Такая же функция split как в lab02.cpp
 std::vector<std::string> split(const std::string& str, char d)
 {
     std::vector<std::string> r;
@@ -38,7 +37,6 @@ void filter_and_print(const IpPool& ip_pool, std::function<bool(const Ip&)> pred
     }
 }
 
-// 1. Тест фильтра по первому байту == 1
 TEST(FilterTest, FirstByte1)
 {
     IpPool pool = {
@@ -60,7 +58,6 @@ TEST(FilterTest, FirstByte1)
     EXPECT_EQ(out.str(), expected);
 }
 
-// 2. Тест фильтра 46.70.*.*
 TEST(FilterTest, Filter46_70)
 {
     IpPool pool = {
@@ -85,7 +82,6 @@ TEST(FilterTest, Filter46_70)
     EXPECT_EQ(out.str(), expected);
 }
 
-// 3. Тест фильтра любой байт == 46
 TEST(FilterTest, AnyByte46)
 {
     IpPool pool = {

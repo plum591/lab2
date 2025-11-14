@@ -30,7 +30,6 @@ int main()
     {
         IpPool ip_pool;
 
-        // Чтение из файла вместо std::cin
         std::ifstream file("../ip_filter.tsv");
         if (!file.is_open()) {
             return 1;
@@ -50,10 +49,8 @@ int main()
             );
         }
 
-        // Обратная лексикографическая сортировка (по убыванию)
         std::sort(ip_pool.begin(), ip_pool.end(), std::greater<>{});
 
-        // Функция вывода одного IP-адреса
         auto print_ip = [](const Ip& ip)
             {
                 std::cout << std::get<0>(ip) << '.'
@@ -62,7 +59,6 @@ int main()
                     << std::get<3>(ip) << '\n';
             };
 
-        // Универсальная функция фильтрации и вывода
         auto filter_and_print = [&](auto predicate)
             {
                 for (const auto& ip : ip_pool)
@@ -74,19 +70,15 @@ int main()
                 }
             };
 
-        // 1. Полный отсортированный список
         filter_and_print([](const auto&) { return true; });
 
-        // 2. Первый байт == 1
         filter_and_print([](const auto& ip) { return std::get<0>(ip) == 1; });
 
-        // 3. Первый байт == 46 и второй байт == 70
         filter_and_print([](const auto& ip)
             {
                 return std::get<0>(ip) == 46 && std::get<1>(ip) == 70;
             });
 
-        // 4. Любой байт == 46
         filter_and_print([](const auto& ip)
             {
                 return std::get<0>(ip) == 46 ||
