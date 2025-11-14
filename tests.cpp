@@ -4,7 +4,6 @@
 #include <tuple>
 #include <algorithm>
 #include <string>
-#include "lib.h"
 
 using Ip = std::tuple<int, int, int, int>;
 using IpPool = std::vector<Ip>;
@@ -110,10 +109,6 @@ TEST(FilterTest, AnyByte46)
         "1.1.46.1\n";
 
     EXPECT_EQ(out.str(), expected);
-}
-
-TEST(VersionTest, ValidVersion) {
-    EXPECT_GT(version(), 0);
 }
 
 int main(int argc, char** argv)

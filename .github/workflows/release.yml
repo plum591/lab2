@@ -1,23 +1,20 @@
-name: C++ CI
+name: C++ CI/CD
 
 on:
   push:
-    branches:
-      - main
-      - feature/github_actions
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   bump-version:
     runs-on: ubuntu-latest
     permissions: write-all
-
-    # расчет версии на основе количества коммитов
     outputs:
       new_tag: ${{ steps.bump_version.outputs.new_tag }}
       commit_count: ${{ steps.bump_version.outputs.commit_count }}
-
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           
@@ -28,27 +25,21 @@ jobs:
           new_tag="v1.0.$commit_count"
           echo "new_tag=$new_tag" >> $GITHUB_OUTPUT
           echo "commit_count=$commit_count" >> $GITHUB_OUTPUT
-          echo "Commit count: $commit_count"
-          echo "New tag: $new_tag"
 
   build-linux:
     runs-on: ubuntu-latest
-    permissions: write-all
     needs: bump-version
-    outputs:
-      deb_package: ${{ steps.find_package.outputs.deb_package }}
     
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
-          submodules: true
           fetch-depth: 0
       
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install libboost-test-dev -y
+        run: sudo apt-get update && sudo apt-get install -y build-essential cmake
       
       - name: Configure CMake
-        run: cmake . -DPATCH_VERSION=${{ needs.bump-version.outputs.commit_count }}
+        run: cmake . -DPROJECT_VERSION_PATCH=${{ needs.bump-version.outputs.commit_count }}
       
       - name: Build project
         run: cmake --build .
@@ -56,54 +47,41 @@ jobs:
       - name: Run tests
         run: cmake --build . --target test
       
-        # создание артефактов для линукса
       - name: Create package
         run: cmake --build . --target package
       
-      - name: Find DEB package
-        id: find_package
-        run: |
-          deb_file=$(ls *.deb | head -1)
-          echo "deb_package=$deb_file" >> $GITHUB_OUTPUT
-          echo "Found package: $deb_file"
-      
-      # присвоение версии для артефакта
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
         with:
           name: linux-package
-          path: ${{ steps.find_package.outputs.deb_package }}
+          path: "*.deb"
 
   build-windows:
     runs-on: windows-latest
-    permissions: write-all
     needs: bump-version
     
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          submodules: true
           fetch-depth: 0
 
-      - name: Install Boost via Chocolatey
-        run: |
-          choco install boost-msvc-14.3 -y --version=1.84.0
-          echo "BOOST_ROOT=C:/local/boost_1_84_0" >> $env:GITHUB_ENV
-
-      # присвоение версии для артефакта
       - name: Configure CMake
         run: |
           mkdir build
           cd build
-          cmake .. -DBOOST_ROOT="$env:BOOST_ROOT" -DPATCH_VERSION=${{ needs.bump-version.outputs.commit_count }}
+          cmake .. -DPROJECT_VERSION_PATCH=${{ needs.bump-version.outputs.commit_count }}
 
       - name: Build
         run: |
           cd build
           cmake --build . --config Release
 
-      - name: Package (CPack)
+      - name: Run tests
+        run: |
+          cd build
+          ctest -C Release
+
+      - name: Package
         run: |
           cd build
           cpack -C Release
@@ -115,40 +93,25 @@ jobs:
           path: build/*.zip
 
   create-release:
+    if: github.ref == 'refs/heads/main'
     needs: [bump-version, build-linux, build-windows]
     runs-on: ubuntu-latest
     permissions: write-all
     
     steps:
-      - name: Download Linux package
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: linux-package
-          path: .
-
-      - name: Download Windows package
-        uses: actions/download-artifact@v4
-        with:
-          name: windows-package
-          path: .
-
-      - name: List downloaded files
-        run: |
-          echo "=== All downloaded files ==="
-          ls -la
-          echo "=== DEB files ==="
-          ls -la *.deb 2>/dev/null || echo "No DEB files found"
-          echo "=== ZIP files ==="
-          ls -la *.zip 2>/dev/null || echo "No ZIP files found"
+          path: artifacts
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ needs.bump-version.outputs.new_tag }} # присвоение тега
-          name: Release ${{ needs.bump-version.outputs.new_tag }} # присвоение версии для релиза
+          tag_name: ${{ needs.bump-version.outputs.new_tag }}
+          name: Release ${{ needs.bump-version.outputs.new_tag }}
           generate_release_notes: true
           files: |
-            *.deb
-            *.zip
+            artifacts/linux-package/*
+            artifacts/windows-package/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -5,7 +5,6 @@
 #include <tuple>
 #include <algorithm>
 #include <fstream>
-#include "lib.h"
 
 using Ip = std::tuple<int, int, int, int>;
 using IpPool = std::vector<Ip>;
@@ -50,8 +49,6 @@ int main()
                 std::stoi(ip_parts[3])
             );
         }
-
-        std::cout << "IP Filter v1.0." << version() << std::endl; 
 
         // Обратная лексикографическая сортировка (по убыванию)
         std::sort(ip_pool.begin(), ip_pool.end(), std::greater<>{});
