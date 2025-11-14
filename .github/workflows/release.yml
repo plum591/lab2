@@ -2,7 +2,7 @@ name: C++ CI/CD
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -45,7 +45,7 @@ jobs:
         run: cmake --build .
       
       - name: Run tests
-        run: ./tests  # Запускаем Google Test напрямую
+        run: ./tests
       
       - name: Create package
         run: cmake --build . --target package
@@ -79,13 +79,13 @@ jobs:
       - name: Run Google Tests
         run: |
           cd build
-          .\Release\tests.exe  # Запускаем Google Test напрямую
+          .\Release\tests.exe
       
-      - name: Package
+      - name: Create clean package
         run: |
           cd build
-          cpack -C Release
-
+          7z a -tzip lab2-${{ needs.bump-version.outputs.new_tag }}-windows.zip ../ip_filter.tsv ./Release/lab2.exe
+      
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
