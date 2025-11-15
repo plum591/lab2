@@ -9,7 +9,7 @@
 using Ip = std::tuple<int, int, int, int>;
 using IpPool = std::vector<Ip>;
 
-std::vector<std::string> split(const std::string& str, char d)
+std::vector<std::string> split(const std::string &str, char d)
 {
     std::vector<std::string> r;
     std::string::size_type start = 0;
@@ -31,7 +31,8 @@ int main()
         IpPool ip_pool;
 
         std::ifstream file("../ip_filter.tsv");
-        if (!file.is_open()) {
+        if (!file.is_open())
+        {
             return 1;
         }
 
@@ -45,53 +46,50 @@ int main()
                 std::stoi(ip_parts[0]),
                 std::stoi(ip_parts[1]),
                 std::stoi(ip_parts[2]),
-                std::stoi(ip_parts[3])
-            );
+                std::stoi(ip_parts[3]));
         }
 
         std::sort(ip_pool.begin(), ip_pool.end(), std::greater<>{});
 
-        auto print_ip = [](const Ip& ip)
-            {
-                std::cout << std::get<0>(ip) << '.'
-                    << std::get<1>(ip) << '.'
-                    << std::get<2>(ip) << '.'
-                    << std::get<3>(ip) << '\n';
-            };
+        auto print_ip = [](const Ip &ip)
+        {
+            std::cout << std::get<0>(ip) << '.'
+                      << std::get<1>(ip) << '.'
+                      << std::get<2>(ip) << '.'
+                      << std::get<3>(ip) << '\n';
+        };
 
         auto filter_and_print = [&](auto predicate)
+        {
+            for (const auto &ip : ip_pool)
             {
-                for (const auto& ip : ip_pool)
+                if (predicate(ip))
                 {
-                    if (predicate(ip))
-                    {
-                        print_ip(ip);
-                    }
+                    print_ip(ip);
                 }
-            };
+            }
+        };
 
-        filter_and_print([](const auto&) { return true; });
+        filter_and_print([](const auto &)
+                         { return true; });
 
-        filter_and_print([](const auto& ip) { return std::get<0>(ip) == 1; });
+        filter_and_print([](const auto &ip)
+                         { return std::get<0>(ip) == 1; });
 
-        filter_and_print([](const auto& ip)
-            {
-                return std::get<0>(ip) == 46 && std::get<1>(ip) == 70;
-            });
+        filter_and_print([](const auto &ip)
+                         { return std::get<0>(ip) == 46 && std::get<1>(ip) == 70; });
 
-        filter_and_print([](const auto& ip)
-            {
-                return std::get<0>(ip) == 46 ||
-                    std::get<1>(ip) == 46 ||
-                    std::get<2>(ip) == 46 ||
-                    std::get<3>(ip) == 46;
-            });
+        filter_and_print([](const auto &ip)
+                         { return std::get<0>(ip) == 46 ||
+                                  std::get<1>(ip) == 46 ||
+                                  std::get<2>(ip) == 46 ||
+                                  std::get<3>(ip) == 46; });
     }
-    catch (const std::exception& e)
+    catch (const std::exception &e)
     {
         return 1;
     }
 
     return 0;
 }
-//10
+// 10
